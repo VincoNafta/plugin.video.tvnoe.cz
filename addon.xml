@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon id="plugin.video.tvnoe.cz"
-version="1.0.0"
+version="1.0.1"
 name="Televize NOE"
 provider-name="VincoNafta">
 <requires>
@@ -13,11 +13,13 @@ provider-name="VincoNafta">
 </extension>
 <extension point="xbmc.addon.metadata">
   <summary lang="cs">Doplnek pro archiv Televize NOE</summary>
-  <description lang="CZ">Plugin je poze simulace prohlizece.</description>
+  <description lang="CZ">Plugin je pouze simulace prohlizece. Autor doplnku neručí za funkčnosť doplnku, celý doplnok je momentálne v experimentálnej fázy vývoja</description>
 <!--  <disclaimer lang="en_GB">Free sample videos are provided by www.vidsplay.com.</disclaimer>-->
   <assets>
     <icon>icon.png</icon>
   </assets>
-  <news>Updated with latest artwork metadata</news>
+  <news>
+      1.0.1 - Aktualizované streamy na živé vysielanie
+  </news>
 </extension>
 </addon>

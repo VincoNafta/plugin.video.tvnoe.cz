@@ -28,8 +28,8 @@ _handle = int(sys.argv[1])
 ALPHABET = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K',
             'L', 'M', 'N', 'O', 'P', 'R', 'S', 'T', 'U', 'V', 'Z']
 
-NOE_stream = "https://n105.quickmedia.tv/noe-abr/noe-abr/playlist_dvr.m3u8"
-NOEplus_stream = "https://n105.quickmedia.tv/noe-2-abr/noe-2-abr/playlist_dvr.m3u8"
+NOE_stream = "https://n106.quickmedia.tv/noetv/live/noetv/Ifd4_1_4/playlist.m3u8"
+NOEplus_stream = "https://n106.quickmedia.tv/noetvplus/live/noetvplus/Shz3_1_1/playlist.m3u8"
 
 
 user_agent = {'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:129.0) Gecko/20100101 Firefox/129.0"}
