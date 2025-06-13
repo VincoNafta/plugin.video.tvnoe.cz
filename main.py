@@ -35,16 +35,20 @@ def get_url(**kwargs):
     return '{0}?{1}'.format(_url, urlencode(kwargs))
 
 
+def getLiveIcon(channelName, apiReference):
+    return apiReference["logo"]["512"][str(channelName)]
+
 def list_categories():
     xbmcplugin.setPluginCategory(_handle, 'Abecedni vyhledavani')
     xbmcplugin.setContent(_handle, 'videos')
 
     live_stream_api = json.loads(search("https://api.tvnoe.cz/live").data)
 
-    for channel, stream in live_stream_api.items():
+    for channel, stream in live_stream_api["stream"].items():
         list_item = xbmcgui.ListItem(label=channel)
-        list_item.setInfo('video', {'title': channel,
+        list_item.setInfo('video', {'title': channel + " ŽIVĚ",
                                     'mediatype': 'video'})
+        list_item.setArt({'thumb': getLiveIcon(channel,live_stream_api), 'icon': getLiveIcon(channel,live_stream_api)})
         url = get_url(action='play_stream', stream=stream)
         list_item.setProperty('IsPlayable', 'true')
 
