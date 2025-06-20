@@ -10,6 +10,7 @@ from urllib.parse import parse_qsl
 import urllib3
 import re
 import json
+from datetime import datetime, timezone
 
 import xbmc
 from bs4 import BeautifulSoup
@@ -31,12 +32,55 @@ def search(page):
     return http.request("GET", page)
 
 
+def getActualRelation(program_dnes, now_utc):
+    for p in program_dnes:
+        p["zacatek_dt"] = datetime.fromisoformat(p["zacatek"])
+
+    zacali = [p for p in program_dnes if p["zacatek_dt"] <= now_utc.astimezone(p["zacatek_dt"].tzinfo)]
+
+    if zacali:
+        posledny = max(zacali, key=lambda x: x["zacatek_dt"])
+        zacatek = posledny["zacatek_dt"]
+
+        return getDisplayName(posledny, zacatek)
+    else:
+        return "Koniec vysielania"
+
+
+def getProgram(channel, json_data):
+    program_dnes = json_data["program"][channel]
+    now_utc = datetime.now(timezone.utc)
+    displayed_programs_str = f"{getActualRelation(program_dnes, now_utc)}\n"
+    for program in program_dnes:
+
+        zacatek = datetime.fromisoformat(program["zacatek"])
+
+        now_local = now_utc.astimezone(zacatek.tzinfo)
+
+        if now_local < zacatek:
+            displayedName = getDisplayName(program, zacatek)
+            displayed_programs_str += f"{displayedName}\n"
+    return displayed_programs_str
+
+
+def getDisplayName(program, zacatek):
+    name = program.get("nazev", "")
+    cast = program.get("podnazev", "")
+    displayedName = zacatek.strftime("%H.%M")
+    if cast.strip() == "":
+        displayedName += f" - {name}"
+    else:
+        displayedName += f" - {name} - {cast}"
+    return displayedName
+
+
 def get_url(**kwargs):
     return '{0}?{1}'.format(_url, urlencode(kwargs))
 
 
-def getLiveIcon(channelName, apiReference):
-    return apiReference["logo"]["512"][str(channelName)]
+def getLiveIcon(channel_name, api_reference):
+    return api_reference["logo"]["512"][str(channel_name)]
+
 
 def list_categories():
     xbmcplugin.setPluginCategory(_handle, 'Abecedni vyhledavani')
@@ -45,10 +89,14 @@ def list_categories():
     live_stream_api = json.loads(search("https://api.tvnoe.cz/live").data)
 
     for channel, stream in live_stream_api["stream"].items():
-        list_item = xbmcgui.ListItem(label=channel)
+        epg_data = json.loads(search("https://api.tvnoe.cz/program").data)
+        list_item = xbmcgui.ListItem(label=channel + " ŽIVĚ")
         list_item.setInfo('video', {'title': channel + " ŽIVĚ",
+                                    'plot': getProgram(channel, epg_data),
                                     'mediatype': 'video'})
-        list_item.setArt({'thumb': getLiveIcon(channel,live_stream_api), 'icon': getLiveIcon(channel,live_stream_api)})
+
+        list_item.setArt(
+            {'thumb': getLiveIcon(channel, live_stream_api), 'icon': getLiveIcon(channel, live_stream_api)})
         url = get_url(action='play_stream', stream=stream)
         list_item.setProperty('IsPlayable', 'true')
 
