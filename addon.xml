@@ -1,28 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.tvnoe.cz"
-version="1.5.1"
-name="Televize NOE"
-provider-name="VincoNafta">
-<requires>
+<addon id="plugin.video.tvnoe.cz" version="1.6.0"
+       name="Televize NOE"
+       provider-name="VincoNafta">
+
+  <requires>
     <import addon="xbmc.python" version="3.0.0"/>
     <import addon="script.module.beautifulsoup4" version="4.6.2"/>
     <import addon="script.module.urllib3" version="1.26.9"/>
-</requires>
-<extension point="xbmc.python.pluginsource" library="main.py">
-  <provides>video</provides>
-</extension>
-<extension point="xbmc.addon.metadata">
-  <summary lang="cs">Doplnek pro archiv a živé vysílaní Televize NOE</summary>
-  <description lang="CZ">Možné pripomienky na fore xbmc-kodi.cz</description>
-  <assets>
-    <icon>icon.png</icon>
-  </assets>
-  <news>
-      1.0.1 - Aktualizované streamy na živé vysielanie
-      1.1.0 - Doložené API, stream sa získava už priamo z TV NOE
-      1.2.0 - Zmena API, streamy sa čerpaju z json objektu stream, pridané logá liveStreamov
-      1.3.0 - Pridane EPG
-      1.4.0 - Reštrukutualizácia Archívu
-  </news>
-</extension>
+  </requires>
+
+  <extension point="xbmc.python.pluginsource" library="main.py">
+    <provides>video</provides>
+  </extension>
+
+  <extension point="xbmc.addon.metadata">
+    <summary lang="cs">Doplnek pro archiv a živé vysílaní Televize NOE</summary>
+    <description lang="cs">Možné připomínky / podpora na fore xbmc-kodi.cz</description>
+    <summary lang="sk">Doplnok pre archív a živé vysielanie Televízie NOE</summary>
+    <description lang="sk">Možné pripomienky / podpora na diskusnom fóre xbmc-kodi.cz</description>
+    <summary lang="en">Addon for watching archive and livestream from Television Noe</summary>
+    <description lang="en">If you have a problem, please contact forum xbmc-kodi.cz (Czech or Slovak only)</description>
+
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+
+    <news>
+      <newsitem>1.0.1 - Aktualizované streamy na živé vysielanie</newsitem>
+      <newsitem>1.1.0 - Doložené API, stream sa získava už priamo z TV NOE</newsitem>
+      <newsitem>1.2.0 - Zmena API, streamy sa čerpajú z JSON objektu stream, pridané logá liveStreamov</newsitem>
+      <newsitem>1.3.0 - Pridané EPG</newsitem>
+      <newsitem>1.4.0 - Reštrukturizácia Archívu</newsitem>
+      <newsitem>1.5.1 - Pridané prihlasovanie do klubovej zóny</newsitem>
+      <newsitem>1.6.0 - Pridaná možnosť hľadania programu po dňoch</newsitem>
+    </news>
+
+  </extension>
 </addon>

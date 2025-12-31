@@ -6,7 +6,6 @@
 import json
 import re
 import sys
-from datetime import datetime, timezone
 from urllib.parse import parse_qsl
 from urllib.parse import urlencode
 
@@ -15,9 +14,10 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
-
-import lib.login as login
 from bs4 import BeautifulSoup
+from datetime import date, timedelta
+import lib.epg as epg
+import lib.login as login
 
 _url = sys.argv[0]
 _handle = int(sys.argv[1])
@@ -31,49 +31,6 @@ def search(page):
 
     http = urllib3.PoolManager(10, headers=user_agent)
     return http.request("GET", page)
-
-
-def getActualRelation(program_dnes, now_utc):
-    for p in program_dnes:
-        p["zacatek_dt"] = datetime.fromisoformat(p["zacatek"])
-
-    zacali = [p for p in program_dnes if p["zacatek_dt"] <= now_utc.astimezone(p["zacatek_dt"].tzinfo)]
-
-    if zacali:
-        posledny = max(zacali, key=lambda x: x["zacatek_dt"])
-        zacatek = posledny["zacatek_dt"]
-
-        return getDisplayName(posledny, zacatek)
-    else:
-        return "Koniec vysielania"
-
-
-def getProgram(channel, json_data):
-    program_dnes = json_data["program"][channel]
-    now_utc = datetime.now(timezone.utc)
-    displayed_programs_str = f"{getActualRelation(program_dnes, now_utc)}\n"
-    for program in program_dnes:
-
-        zacatek = datetime.fromisoformat(program["zacatek"])
-
-        now_local = now_utc.astimezone(zacatek.tzinfo)
-
-        if now_local < zacatek:
-            displayedName = getDisplayName(program, zacatek)
-            displayed_programs_str += f"{displayedName}\n"
-    return displayed_programs_str
-
-
-def getDisplayName(program, zacatek):
-    name = program.get("nazev", "")
-    cast = program.get("podnazev", "")
-    displayedName = zacatek.strftime("%H.%M")
-    if cast.strip() == "":
-        displayedName += f" - {name}"
-    else:
-        displayedName += f" - {name} - {cast}"
-    return displayedName
-
 
 def get_url(**kwargs):
     return '{0}?{1}'.format(_url, urlencode(kwargs))
@@ -93,7 +50,7 @@ def list_categories():
         epg_data = json.loads(search("https://api.tvnoe.cz/program").data)
         list_item = xbmcgui.ListItem(label=channel + " ŽIVĚ")
         list_item.setInfo('video', {'title': channel + " ŽIVĚ",
-                                    'plot': getProgram(channel, epg_data),
+                                    'plot': epg.getActualProgram(channel, epg_data),
                                     'mediatype': 'video'})
 
         list_item.setArt(
@@ -105,6 +62,16 @@ def list_categories():
 
     list_item = xbmcgui.ListItem(label="Videoteka A-Z")
     url = get_url(action='archive')
+    list_item.setProperty('IsPlayable', 'false')
+    xbmcplugin.addDirectoryItem(_handle, url, list_item, True)
+
+    list_item = xbmcgui.ListItem(label="Program Noe")
+    url = get_url(action='program_noe')
+    list_item.setProperty('IsPlayable', 'false')
+    xbmcplugin.addDirectoryItem(_handle, url, list_item, True)
+
+    list_item = xbmcgui.ListItem(label="Program Noe+")
+    url = get_url(action='program_noe_plus')
     list_item.setProperty('IsPlayable', 'false')
     xbmcplugin.addDirectoryItem(_handle, url, list_item, True)
 
@@ -179,6 +146,24 @@ def list_episodes(show_url):
         xbmcplugin.addDirectoryItem(_handle, url, list_item, is_folder)
     xbmcplugin.endOfDirectory(_handle)
 
+def getEPG(channel):
+    xbmcplugin.setPluginCategory(_handle, f'Program {channel}')
+    for plusDay in range (0,6):
+        generated_date = date.today() + timedelta(days=plusDay)
+        label = epg.getNameDay(generated_date,plusDay)
+        list_item = xbmcgui.ListItem(label=label)
+        url = get_url(action='show_epg', channel=channel, epg_date = label, real_date = generated_date)
+        xbmcplugin.addDirectoryItem(_handle, url, list_item, False)
+    xbmcplugin.endOfDirectory(_handle)
+
+def show_EPG(channel, epg_date, real_date):
+    raw_adr = search(f"https://api.tvnoe.cz/program/{real_date}")
+    epg_data = json.loads(raw_adr.data)
+    program_text = str(epg.getProgram(channel, epg_data)) if epg_data else "Žiadne dáta"
+    xbmcgui.Dialog().textviewer(
+        heading=f'Program {channel} - {str(epg_date)}',
+        text=str(program_text)
+    )
 
 def play_video(path):
     page_cn = search(path).data
@@ -196,7 +181,6 @@ def play_stream(path):
     play_item = xbmcgui.ListItem(path=path)
     xbmcplugin.setResolvedUrl(_handle, True, listitem=play_item)
 
-
 def router(paramstring):
     params = dict(parse_qsl(paramstring))
     if params:
@@ -210,8 +194,13 @@ def router(paramstring):
             list_archive()
         elif params['action'] == 'play':
             play_video(params['video'])
+        elif params['action'] == 'program_noe':
+            getEPG("Noe")
+        elif params['action'] == 'program_noe_plus':
+            getEPG("Noe Plus")
+        elif params['action'] == 'show_epg':
+            show_EPG(params['channel'], params['epg_date'], params['real_date'])
         else:
-
             raise ValueError('Invalid paramstring: {0}!'.format(paramstring))
     else:
         list_categories()
